@@ -1,0 +1,79 @@
+The algorithm uses the following message types:
+
+    Election Message: Sent to announce election.
+    Answer (Alive) Message: Responds to the Election message.
+    Coordinator (Victory) Message: Sent by winner of the election to announce victory.
+
+When a process P recovers from failure, or the failure detector indicates that the current coordinator has failed, P performs the following actions:
+
+1.    If P has the highest process ID, it sends a Victory message to all other processes and becomes the new Coordinator.
+      Otherwise, P broadcasts an Election message to all other processes with higher process IDs than itself.
+2.    If P receives no Answer after sending an Election message, then it broadcasts a Victory message to all other processes and becomes the Coordinator.
+3     If P receives an Answer from a process with a higher ID, it sends no further messages for this election and waits for a Victory message. (If there is no Victory message after a period of time, it restarts the process at the beginning.)
+    If P receives an Election message from another process with a lower ID it sends an Answer message back and starts the election process at the beginning, by sending an Election message to higher-numbered processes.
+    If P receives a Coordinator message, it treats the sender as the coordinator.
+
+* ensure full mesh cluster
+* add new/restarted  node to the cluster
+  - erlang:ping predefined list of nodes to connect to
+* failure detector indicates current cooridnator failed
+  - erlang monitor
+
+start()->
+	RunningNodes=connect_to_all_nodes(NodeList),
+	case highest_node_id(RunningNodes) of
+	     []-> %node is highest
+	     	  victory(lower_node_id(node));
+		  Set to cooridnator[],
+	     [NodesHigherId]->
+	          election(all)
+		  receive
+			alive(NodeHigerId)->
+				receive
+					victory(Coordinator)->
+						storeCoordinator
+					timeout Victory time->
+						start_election_again
+			timeout election timer->
+				victory(Coordinator)
+				
+						
+
+      	node+3		node+2	    	  node-1      	node+0      node+1			(node+4 dead)
+	(starts)
+	     
+  	     ---ping --> |
+	     <---pong--- |
+	     ---ping ---------------------> |
+	     <--------------------pong ---- |
+	     ---ping ------------------------------------> |
+	      <--------------------pong ------------------ |
+	     ---ping -----------------------------------------------> |
+	     <--------------------pong ------------------------------ |
+	     ---ping -------------------------------------------------------------------------------> |
+	     <--------------------pang -------------------------------------------------------------- |
+
+	     nodes()=[node-1,node+0,node+1,node+2]
+	     node()=node+3
+	     
+
+
+
+
+
+
+
+Algorithm – Suppose process P sends a message to the coordinator.
+
+   1.  If coordinator does not respond to it within a time interval T, then it is assumed that coordinator has failed.
+   2.  Now process P sends election message to every process with high priority number.
+   3.  It waits for responses, if no one responds for time interval T then process P elects itself as a coordinator.
+   4.  Then it sends a message to all lower priority number processes that it is elected as their new coordinator.
+  5.   However, if an answer is received within time T from any other process Q,
+        (I) Process P again waits for time interval T’ to receive another message from Q that it has been elected as coordinator.
+        (II) If Q doesn’t responds within time interval T’ then it is assumed to have failed and algorithm is restarted.
+
+
+	     P    	  	 Coordinator 		P-1	   	P+1   	      P+2     	     P+N
+	  (starts)
+	     ---->
