@@ -80,10 +80,6 @@ who_is_leader()->
 am_i_leader(CallingNode)->
     gen_server:call(?SERVER,{am_i_leader,CallingNode},infinity).
    
-
-election_response()->
-     gen_server:cast(?SERVER,{election_response}).
-
 coordinator_message(CoordinatorNode)->
      gen_server:cast(?SERVER,{coordinator_message,CoordinatorNode}).
 
@@ -171,7 +167,7 @@ handle_cast({election,Node}, State) ->
     end,
     {noreply, State};
 
-handle_cast({election_response,Node}, State) ->
+handle_cast({election_response,_Node}, State) ->
  %   io:format("Node ,i_am_alive ~p~n",[{node(),Node}]),
     {noreply, State};
 
