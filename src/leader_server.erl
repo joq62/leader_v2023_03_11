@@ -99,7 +99,7 @@ ping()-> gen_server:call(?SERVER, {ping},infinity).
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
 init([]) ->
-    Nodes=case application:get_env(leader,nodes) of
+    Nodes=case application:get_env(leader_nodes) of
 	      undefined->
 		  [];
 	      {ok,N}->
