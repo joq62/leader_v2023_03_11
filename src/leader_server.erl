@@ -99,11 +99,11 @@ ping()-> gen_server:call(?SERVER, {ping},infinity).
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
 init([]) ->
-    Nodes=case application:get_env(leader_nodes) of
+    Nodes=case application:get_env(application_to_track) of
 	      undefined->
 		  [];
-	      {ok,N}->
-		  N
+	      {ok,ApplId}->
+		  sd_server:get(ApplId)
 	  end,
  %   io:format("Nodes ~p~n",[{?MODULE,?LINE,Nodes}]),
     leader_server:start_election(),
