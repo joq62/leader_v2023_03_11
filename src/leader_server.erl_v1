@@ -101,11 +101,16 @@ ping()-> gen_server:call(?SERVER, {ping},infinity).
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
 init([]) ->
-     {ok,Application}=application:get_env(application_to_track),
+    Nodes=case application:get_env(application_to_track) of
+	      undefined->
+		  [];
+	      {ok,ApplId}->
+		  sd_server:get(ApplId)
+	  end,
+ %   io:format("Nodes ~p~n",[{?MODULE,?LINE,Nodes}]),
     leader_server:start_election(),
  %   rpc:cast(node(),log,log,[?Log_info("server started",[])]),
-    {ok, #state{nodes = glurk_to_be_removed,
-		application_to_track=Application,
+    {ok, #state{nodes = Nodes,
 		coordinator_node = undefined}}.
 
 %% --------------------------------------------------------------------
@@ -149,8 +154,7 @@ handle_call(Request, From, State) ->
 %% --------------------------------------------------------------------
 handle_cast({start_election}, State) ->
     io:format("Election started by node ~p~n", [node()]),
-    Nodes=sd_server:get(State#state.application_to_track),
-    NodesLowerId=nodes_with_lower_ids(Nodes),
+    NodesLowerId=nodes_with_lower_ids(State#state.nodes),
     [rpc:cast(Node,leader_server,election,[node()])||Node<-NodesLowerId],
     {noreply, State,?ELECTION_RESPONSE_TIMEOUT};
 
@@ -233,8 +237,9 @@ code_change(_OldVsn, State, _Extra) ->
 %% Returns: non
 %% --------------------------------------------------------------------
 win_election(State)->
-    Nodes=sd_server:get(State#state.application_to_track),
-    NodesHigherId=nodes_with_higher_ids(Nodes),
+  %  io:format("Node  won the election ~p~n", [node()]),
+ %   NodesHigherId=nodes_with_higher_ids(State#state.nodes),
+    NodesHigherId=nodes_with_higher_ids(State#state.nodes),
     [rpc:cast(Node,leader_server,coordinator_message,[node()])||Node<-NodesHigherId],
     set_coordinator(State, node()).
 
