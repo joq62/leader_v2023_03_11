@@ -36,6 +36,8 @@
 	 status/0,
 	 who_is_leader/0,
 	 am_i_leader/1,
+
+	 appl_start/1,
 	 ping/0
 	]).
 
@@ -57,6 +59,12 @@
 %% ====================================================================
 %% External functions
 %% ====================================================================
+appl_start([])->
+    application:start(leader).
+
+
+
+
 start()-> 
     gen_server:start_link({local, ?SERVER}, ?SERVER, [], []).
 stop()-> gen_server:call(?SERVER, {stop},infinity).
