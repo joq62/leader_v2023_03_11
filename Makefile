@@ -17,7 +17,9 @@ eunit:
 	rebar3 compile;
 	cp _build/default/lib/*/ebin/* ebin;
 	erlc -o test_ebin test/*.erl;
-	erl -pa ebin -pa test_ebin -sname test -run basic_eunit start -setcookie cookie_test
+	erl -pa ebin -pa test_ebin\
+	    -pa /home/joq62/erlang/infrastructure/sd/ebin\
+	    -sname test -run basic_eunit start -setcookie cookie_test
 release:
 	rm -rf  *~ */*~  test_ebin erl_cra*;
 	mkdir test_ebin;

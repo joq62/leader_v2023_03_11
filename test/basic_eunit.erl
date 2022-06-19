@@ -48,7 +48,7 @@ start()->
 start_leader([],_)->
     ok;
 start_leader([Node|T],Nodes)->
-    ok=rpc:call(Node,application,set_env,[[{leader,[{nodes,Nodes}]}]],5000),
+    ok=rpc:call(Node,application,set_env,[[{leader,[{application_to_track,sd}]}]],5000),
     ok=rpc:call(Node,application,start,[leader],5000),
     start_leader(T,Nodes).
     
@@ -68,10 +68,12 @@ setup()->
 
     
     R=[start_slave(NodeName)||NodeName<-NodeNames],
-    io:format("Stared nodes ~p~n",[nodes()]),
+    io:format("Stared nodes ~p~n",[R]),
+    
     ok.
 
 start_slave(NodeName)->
-    Pargs="-pa ebin",
-    test_nodes:start_slave(NodeName,Pargs).
+    Pargs="-pa ebin -pa /home/joq62/erlang/infrastructure/sd/ebin",
+    {ok,Node}=test_nodes:start_slave(NodeName,Pargs),
+    {rpc:call(Node,application,start,[sd],1000),Node}.
     

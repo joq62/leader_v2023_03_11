@@ -103,7 +103,9 @@ ping()-> gen_server:call(?SERVER, {ping},infinity).
 init([]) ->
      {ok,Application}=application:get_env(application_to_track),
     leader_server:start_election(),
- %   rpc:cast(node(),log,log,[?Log_info("server started",[])]),
+ 
+    rpc:cast(node(),nodelog_server,log,[notice,?MODULE_STRING,?LINE,
+				      {"OK, started server at node  ",?MODULE," ",node()}]),
     {ok, #state{nodes = glurk_to_be_removed,
 		application_to_track=Application,
 		coordinator_node = undefined}}.
@@ -148,7 +150,7 @@ handle_call(Request, From, State) ->
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% --------------------------------------------------------------------
 handle_cast({start_election}, State) ->
-    io:format("Election started by node ~p~n", [node()]),
+   % io:format("Election started by node ~p~n", [node()]),
     Nodes=sd_server:get(State#state.application_to_track),
     NodesLowerId=nodes_with_lower_ids(Nodes),
     [rpc:cast(Node,leader_server,election,[node()])||Node<-NodesLowerId],
@@ -189,7 +191,9 @@ handle_info(timeout,State) ->
     {noreply, NewState};
 
 handle_info({nodedown, CoordinatorNode},State) -> 
-    io:format("nodedown Node ~p~n",[{CoordinatorNode,State#state.coordinator_node,?FUNCTION_NAME,?MODULE,?LINE}]),
+    rpc:cast(node(),nodelog_server,log,[warning,?MODULE_STRING,?LINE,
+					{"CoordinatorNode down  ",CoordinatorNode}]),
+    
     case State#state.coordinator_node=:=CoordinatorNode of
 	true->
 	    leader_server:start_election();
@@ -239,7 +243,7 @@ win_election(State)->
     set_coordinator(State, node()).
 
 set_coordinator(State,Coordinator)->
-    io:format("Node ~p has changed leader from ~p to ~p~n", [node(), State#state.coordinator_node, Coordinator]),
+%    io:format("Node ~p has changed leader from ~p to ~p~n", [node(), State#state.coordinator_node, Coordinator]),
     monitor_node(State#state.coordinator_node, false),
     monitor_node(Coordinator, true),
     State#state{coordinator_node = Coordinator}.
