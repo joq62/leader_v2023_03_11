@@ -110,7 +110,7 @@ ping()-> gen_server:call(?SERVER, {ping},infinity).
 %% --------------------------------------------------------------------
 init([]) ->
      {ok,Application}=application:get_env(application_to_track),
-    leader_server:start_election(),
+    rpc:cast(node(),leader_server,start_election,[]),
  
     rpc:cast(node(),nodelog_server,log,[notice,?MODULE_STRING,?LINE,
 				      {"OK, started server at node  ",?MODULE," ",node()}]),
