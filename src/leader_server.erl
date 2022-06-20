@@ -159,6 +159,7 @@ handle_call(Request, From, State) ->
 %% --------------------------------------------------------------------
 handle_cast({start_election}, State) ->
    % io:format("Election started by node ~p~n", [node()]),
+    timer:sleep(2000),
     Nodes=sd_server:get(State#state.application_to_track),
     NodesLowerId=nodes_with_lower_ids(Nodes),
     [rpc:cast(Node,leader_server,election,[node()])||Node<-NodesLowerId],
