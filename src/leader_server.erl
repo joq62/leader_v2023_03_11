@@ -116,7 +116,7 @@ init([]) ->
 				      {"OK, started server at node  ",?MODULE," ",node()}]),
     {ok, #state{nodes = glurk_to_be_removed,
 		application_to_track=Application,
-		coordinator_node = undefined}}.
+		coordinator_node = node()}}.
 
 %% --------------------------------------------------------------------
 %% Function: handle_call/3
@@ -159,7 +159,7 @@ handle_call(Request, From, State) ->
 %% --------------------------------------------------------------------
 handle_cast({start_election}, State) ->
    % io:format("Election started by node ~p~n", [node()]),
-    timer:sleep(2000),
+
     Nodes=sd_server:get(State#state.application_to_track),
     NodesLowerId=nodes_with_lower_ids(Nodes),
     [rpc:cast(Node,leader_server,election,[node()])||Node<-NodesLowerId],
