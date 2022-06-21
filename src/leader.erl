@@ -7,7 +7,7 @@
 %%% 
 %%% Created : 10 dec 2012
 %%% -------------------------------------------------------------------
--module(leader_server).
+-module(leader).
  
 -behaviour(gen_server). 
 
@@ -24,7 +24,7 @@
 -define(COORDINATOR_MESSAGE, coordinator).
 
 
--define(SERVER,leader_server).
+-define(SERVER,leader).
 
 %% External exports
 -export([
@@ -60,7 +60,7 @@
 %% External functions
 %% ====================================================================
 appl_start([])->
-    application:start(leader).
+    application:start(?MODULE).
 
 
 
@@ -110,9 +110,9 @@ ping()-> gen_server:call(?SERVER, {ping},infinity).
 %% --------------------------------------------------------------------
 init([]) ->
      {ok,Application}=application:get_env(application_to_track),
-    rpc:cast(node(),leader_server,start_election,[]),
+    rpc:cast(node(),leader,start_election,[]),
  
-    rpc:cast(node(),nodelog_server,log,[notice,?MODULE_STRING,?LINE,
+    rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
 				      {"OK, started server at node  ",?MODULE," ",node()}]),
     {ok, #state{nodes = glurk_to_be_removed,
 		application_to_track=Application,
@@ -160,17 +160,17 @@ handle_call(Request, From, State) ->
 handle_cast({start_election}, State) ->
    % io:format("Election started by node ~p~n", [node()]),
 
-    Nodes=sd_server:get(State#state.application_to_track),
+    Nodes=sd:get(State#state.application_to_track),
     NodesLowerId=nodes_with_lower_ids(Nodes),
-    [rpc:cast(Node,leader_server,election,[node()])||Node<-NodesLowerId],
+    [rpc:cast(Node,leader,election,[node()])||Node<-NodesLowerId],
     {noreply, State,?ELECTION_RESPONSE_TIMEOUT};
 
 handle_cast({election,Node}, State) ->
  %   io:format("Election  ~p~n", [node()]),
     case Node > node() of
 	true-> 
-	    rpc:cast(Node,leader_server,election_response,[node()]),
-	    leader_server:start_election();
+	    rpc:cast(Node,leader,election_response,[node()]),
+	    leader:start_election();
 	false-> % lost election
 	    ok   
     end,
@@ -200,12 +200,12 @@ handle_info(timeout,State) ->
     {noreply, NewState};
 
 handle_info({nodedown, CoordinatorNode},State) -> 
-    rpc:cast(node(),nodelog_server,log,[warning,?MODULE_STRING,?LINE,
+    rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
 					{"CoordinatorNode down  ",CoordinatorNode}]),
     
     case State#state.coordinator_node=:=CoordinatorNode of
 	true->
-	    leader_server:start_election();
+	    leader:start_election();
 	false->
 	    ok
     end,
@@ -246,9 +246,9 @@ code_change(_OldVsn, State, _Extra) ->
 %% Returns: non
 %% --------------------------------------------------------------------
 win_election(State)->
-    Nodes=sd_server:get(State#state.application_to_track),
+    Nodes=sd:get(State#state.application_to_track),
     NodesHigherId=nodes_with_higher_ids(Nodes),
-    [rpc:cast(Node,leader_server,coordinator_message,[node()])||Node<-NodesHigherId],
+    [rpc:cast(Node,leader,coordinator_message,[node()])||Node<-NodesHigherId],
     set_coordinator(State, node()).
 
 set_coordinator(State,Coordinator)->

@@ -31,7 +31,7 @@ init([]) ->
                  intensity => 1,
                  period => 2},
     ChildSpecs = [#{id=>leader,
-		    start=>{leader_server,start,[]}}],
+		    start=>{leader,start,[]}}],
 		 %   start=>{leader_server,start,Nodes}}],
     {ok, {SupFlags, ChildSpecs}}.
 

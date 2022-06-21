@@ -5,7 +5,6 @@
               {mod,{leader_app,[]}},
               {applications,[kernel,stdlib]},
               {env,[]},
-              {modules,[coordinator_server,leader_app,leader_server,
-                        leader_sup]},
+              {modules,[coordinator_server,leader,leader_app,leader_sup]},
               {licenses,["Apache 2.0"]},
               {links,[]}]}.
