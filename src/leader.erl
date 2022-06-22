@@ -160,7 +160,7 @@ handle_call(Request, From, State) ->
 handle_cast({start_election}, State) ->
    % io:format("Election started by node ~p~n", [node()]),
 
-    Nodes=sd:get(State#state.application_to_track),
+    Nodes=[Node||{Node,_}<-sd:get(State#state.application_to_track)],
     NodesLowerId=nodes_with_lower_ids(Nodes),
     [rpc:cast(Node,leader,election,[node()])||Node<-NodesLowerId],
     {noreply, State,?ELECTION_RESPONSE_TIMEOUT};
@@ -246,7 +246,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% Returns: non
 %% --------------------------------------------------------------------
 win_election(State)->
-    Nodes=sd:get(State#state.application_to_track),
+    Nodes=[Node||{Node,_}<-sd:get(State#state.application_to_track)],
     NodesHigherId=nodes_with_higher_ids(Nodes),
     [rpc:cast(Node,leader,coordinator_message,[node()])||Node<-NodesHigherId],
     set_coordinator(State, node()).
