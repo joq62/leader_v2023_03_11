@@ -16,7 +16,7 @@
 %% --------------------------------------------------------------------
 
 %% --------------------------------------------------------------------
--define(ELECTION_RESPONSE_TIMEOUT,1*1000).
+-define(ELECTION_RESPONSE_TIMEOUT,3*1000).
 
 %%% bully algorithm messages
 -define(ELECTION_MESSAGE, election).
@@ -61,8 +61,6 @@
 %% ====================================================================
 appl_start([])->
     application:start(?MODULE).
-
-
 
 
 start()-> 
