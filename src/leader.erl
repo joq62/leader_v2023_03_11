@@ -121,7 +121,7 @@ init([]) ->
 			[{Leader,_}|_]=Leaders,
 			rpc:call(Leader,leader,who_is_leader,[],5000)
 		end,		
- 
+    monitor_node(Coordinator, true),
     rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
 				      {"OK, started server at node  ",?MODULE," ",node()}]),
     {ok, #state{nodes = glurk_to_be_removed,
