@@ -17,6 +17,7 @@
 
 %% --------------------------------------------------------------------
 -define(ELECTION_RESPONSE_TIMEOUT,3*1000).
+-define(CHECK_CONSISTENCE_INTERVAL,30*1000).
 
 %%% bully algorithm messages
 -define(ELECTION_MESSAGE, election).
@@ -36,6 +37,7 @@
 	 status/0,
 	 who_is_leader/0,
 	 am_i_leader/1,
+	
 
 	 appl_start/1,
 	 ping/0
@@ -91,6 +93,9 @@ am_i_leader(CallingNode)->
 coordinator_message(CoordinatorNode)->
      gen_server:cast(?SERVER,{coordinator_message,CoordinatorNode}).
 
+%check_consistence()->
+ %    gen_server:cast(?SERVER,{check_consistence}).
+
 
 ping()-> gen_server:call(?SERVER, {ping},infinity).
 
@@ -107,14 +112,21 @@ ping()-> gen_server:call(?SERVER, {ping},infinity).
 %%          {stop, Reason}
 %% --------------------------------------------------------------------
 init([]) ->
-     {ok,Application}=application:get_env(application_to_track),
-    rpc:cast(node(),leader,start_election,[]),
+    {ok,Application}=application:get_env(application_to_track),
+    Coordinator=case sd:get(leader) of
+		    []->
+			node();
+		    Leaders->
+			rpc:cast(node(),leader,start_election,[]),
+			[{Leader,_}|_]=Leaders,
+			rpc:call(Leader,leader,who_is_leader,[],5000)
+		end,		
  
     rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
 				      {"OK, started server at node  ",?MODULE," ",node()}]),
     {ok, #state{nodes = glurk_to_be_removed,
 		application_to_track=Application,
-		coordinator_node = node()}}.
+		coordinator_node = Coordinator}}.
 
 %% --------------------------------------------------------------------
 %% Function: handle_call/3
