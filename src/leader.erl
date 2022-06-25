@@ -16,7 +16,7 @@
 %% --------------------------------------------------------------------
 
 %% --------------------------------------------------------------------
--define(ELECTION_RESPONSE_TIMEOUT,1*500).
+-define(ELECTION_RESPONSE_TIMEOUT,1*1000).
 
 %%% bully algorithm messages
 -define(ELECTION_MESSAGE, election).
