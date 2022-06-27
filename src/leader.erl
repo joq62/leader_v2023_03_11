@@ -180,7 +180,7 @@ handle_cast({election,Node}, State) ->
     case Node > node() of
 	true-> 
 	    rpc:cast(Node,leader,election_response,[node()]),
-	    leader:start_election();
+	    rpc:cast(node(),leader,start_election,[]);
 	false-> % lost election
 	    ok   
     end,
@@ -261,6 +261,8 @@ win_election(State)->
     set_coordinator(State, node()).
 
 set_coordinator(State,Coordinator)->
+    rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
+				 {"DEBUG  Oldccordinator, New coordinator, ", State#state.coordinator_node," ",Coordinator}]),
 %    io:format("Node ~p has changed leader from ~p to ~p~n", [node(), State#state.coordinator_node, Coordinator]),
     monitor_node(State#state.coordinator_node, false),
     monitor_node(Coordinator, true),
