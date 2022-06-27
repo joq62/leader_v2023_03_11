@@ -212,16 +212,20 @@ handle_info(timeout,State) ->
 handle_info({nodedown, CoordinatorNode},State) -> 
     rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
 					{"CoordinatorNode down, ",CoordinatorNode}]),
-    rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
-				 {"DEBUG  State#state.coordinator_node, ", State#state.coordinator_node}]),
+  %  rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
+%				 {"DEBUG  State#state.coordinator_node, ", State#state.coordinator_node}]),
     
-    case State#state.coordinator_node=:=CoordinatorNode of
-	true->
-	    rpc:cast(node(),leader,start_election,[]);
-	false->
-	    ok
-    end,
-    {noreply, State};
+    NewCoordinator=case sd:get(leader) of
+		    []->
+			node();
+		    Leaders->
+			rpc:cast(node(),leader,start_election,[]),
+			[{Leader,_}|_]=Leaders,
+			rpc:call(Leader,leader,who_is_leader,[],5000)
+		end,		
+    monitor_node(NewCoordinator, true),
+    
+    {noreply, State#state{coordinator_node=NewCoordinator}};
 
 handle_info(Info, State) ->
     io:format("unmatched match Info ~p~n",[{Info,?FUNCTION_NAME,?MODULE,?LINE}]),
