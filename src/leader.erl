@@ -17,7 +17,7 @@
 
 %% --------------------------------------------------------------------
 -define(ELECTION_RESPONSE_TIMEOUT,3*1000).
--define(CHECK_CONSISTENCE_INTERVAL,30*1000).
+-define(CHECK_CONSISTENCE_INTERVAL,10*1000).
 
 %%% bully algorithm messages
 -define(ELECTION_MESSAGE, election).
@@ -215,17 +215,10 @@ handle_info({nodedown, CoordinatorNode},State) ->
   %  rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
 %				 {"DEBUG  State#state.coordinator_node, ", State#state.coordinator_node}]),
     
-    NewCoordinator=case sd:get(leader) of
-		    []->
-			node();
-		    Leaders->
-			rpc:cast(node(),leader,start_election,[]),
-			[{Leader,_}|_]=Leaders,
-			rpc:call(Leader,leader,who_is_leader,[],5000)
-		end,		
-    monitor_node(NewCoordinator, true),
-    
-    {noreply, State#state{coordinator_node=NewCoordinator}};
+    rpc:cast(node(),leader,start_election,[]),
+
+   
+    {noreply, State};
 
 handle_info(Info, State) ->
     io:format("unmatched match Info ~p~n",[{Info,?FUNCTION_NAME,?MODULE,?LINE}]),
