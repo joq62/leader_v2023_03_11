@@ -214,7 +214,8 @@ handle_info({nodedown,Node},State) ->
     case Node of
 	CoordinatorNode->
 	    rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
-					{"CoordinatorNode down, ",State#state.coordinator_node}]),	    
+					{"CoordinatorNode down, ",State#state.coordinator_node}]),
+	    timer:sleep(1000),
 	    rpc:cast(node(),leader,start_election,[]);
 	_->
 	    rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
