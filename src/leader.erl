@@ -215,7 +215,7 @@ handle_info({nodedown, CoordinatorNode},State) ->
     
     case State#state.coordinator_node=:=CoordinatorNode of
 	true->
-	    leader:start_election();
+	    rpc:cast(node(),leader,start_election,[]);
 	false->
 	    ok
     end,
