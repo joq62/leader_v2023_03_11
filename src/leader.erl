@@ -211,7 +211,9 @@ handle_info(timeout,State) ->
 
 handle_info({nodedown, CoordinatorNode},State) -> 
     rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
-					{"CoordinatorNode down  ",CoordinatorNode}]),
+					{"CoordinatorNode down, ",CoordinatorNode}]),
+    rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
+				 {"DEBUG  State#state.coordinator_node, ", State#state.coordinator_node}]),
     
     case State#state.coordinator_node=:=CoordinatorNode of
 	true->
