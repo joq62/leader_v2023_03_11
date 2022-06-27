@@ -209,15 +209,18 @@ handle_info(timeout,State) ->
     NewState=win_election(State),
     {noreply, NewState};
 
-handle_info({nodedown, CoordinatorNode},State) -> 
-    rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
-					{"CoordinatorNode down, ",CoordinatorNode}]),
-  %  rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
-%				 {"DEBUG  State#state.coordinator_node, ", State#state.coordinator_node}]),
-    
-    rpc:cast(node(),leader,start_election,[]),
-
-   
+handle_info({nodedown,Node},State) -> 
+    CoordinatorNode=State#state.coordinator_node,
+    case Node of
+	CoordinatorNode->
+	    rpc:cast(node(),nodelog,log,[warning,?MODULE_STRING,?LINE,
+					{"CoordinatorNode down, ",State#state.coordinator_node}]),	    
+	    rpc:cast(node(),leader,start_election,[]);
+	_->
+	    rpc:cast(node(),nodelog,log,[notice,?MODULE_STRING,?LINE,
+					{"Node down, ",Node}])
+    end,
+	    
     {noreply, State};
 
 handle_info(Info, State) ->
