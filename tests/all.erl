@@ -49,18 +49,26 @@ test_1(Nodes)->
     true=rpc:cast(N1,leader,start,[Nodes]),
     timer:sleep(500),
     N1=rpc:call(N1,leader,who_is_leader,[],2000),
+    true=rpc:call(N1,leader,am_i_leader,[],2000),
   %  io:format("Leader ~p~n",[{rpc:call(N1,leader,who_is_leader,[],2000),?MODULE,?FUNCTION_NAME,?LINE}]),
     
     %% N2
     true=rpc:cast(N2,leader,start,[Nodes]),
     timer:sleep(500),
     N2=rpc:call(N1,leader,who_is_leader,[],2000),
+    false=rpc:call(N1,leader,am_i_leader,[],2000),
+    true=rpc:call(N2,leader,am_i_leader,[],2000),
+    
   %  io:format("Leader ~p~n",[{rpc:call(N1,leader,who_is_leader,[],2000),?MODULE,?FUNCTION_NAME,?LINE}]),
 
     %% N3
     true=rpc:cast(N3,leader,start,[Nodes]),
     timer:sleep(500),
     N3=rpc:call(N1,leader,who_is_leader,[],2000),
+    false=rpc:call(N1,leader,am_i_leader,[],2000),
+    false=rpc:call(N2,leader,am_i_leader,[],2000),
+    true=rpc:call(N3,leader,am_i_leader,[],2000),
+
 %    io:format("Leader ~p~n",[{rpc:call(N1,leader,who_is_leader,[],2000),?MODULE,?FUNCTION_NAME,?LINE}]),
 
 
@@ -68,12 +76,17 @@ test_1(Nodes)->
     true=rpc:cast(N4,leader,start,[Nodes]),
     timer:sleep(500),
     N4=rpc:call(N1,leader,who_is_leader,[],2000),
+    false=rpc:call(N1,leader,am_i_leader,[],2000),
+    false=rpc:call(N2,leader,am_i_leader,[],2000),
+    false=rpc:call(N3,leader,am_i_leader,[],2000),
+    true=rpc:call(N4,leader,am_i_leader,[],2000),
    % io:format("Leader ~p~n",[{rpc:call(N1,leader,who_is_leader,[],2000),?MODULE,?FUNCTION_NAME,?LINE}]),
 
     %% Kill N4 and a new elections starts
     rpc:call(N4,init,stop,[],2000),
     timer:sleep(2000),
     N3=rpc:call(N1,leader,who_is_leader,[],2000),
+
     %io:format("Leader ~p~n",[{rpc:call(N1,leader,who_is_leader,[],2000),?MODULE,?FUNCTION_NAME,?LINE}]),
 
     %% restart N4

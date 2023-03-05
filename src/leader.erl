@@ -11,7 +11,8 @@
 -behaviour(gen_server).
 %% Server API
 
--export([who_is_leader/0]).
+-export([who_is_leader/0,
+	 am_i_leader/0]).
 
 %% API
 -export([start/1,
@@ -43,6 +44,8 @@
 %%--------------------------------------------------------------------
 who_is_leader()->
     gen_server:call(?SERVER, {who_is_leader},infinity).
+am_i_leader()->
+    gen_server:call(?SERVER, {am_i_leader},infinity).
 
 
 %%--------------------------------------------------------------------
@@ -101,6 +104,17 @@ init(Nodes) ->
 
 handle_call({who_is_leader}, _From, State) ->
     Reply = State#state.coordinatorNode,
+    {reply, Reply, State};
+
+handle_call({am_i_leader}, _From, State) ->
+    MyNode=node(),
+    Reply = if 
+		MyNode/=State#state.coordinatorNode ->
+		    false;
+		true->
+		    true
+	    end,
+		
     {reply, Reply, State};
 
 
