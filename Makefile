@@ -1,44 +1,71 @@
 all:
-	rm -rf  *~ */*~  src/*.beam test/*.beam erl_cra*;
-	rm -rf *_info_specs deployments;
-	rm -rf _build test_ebin ebin;		
+	rm -rf  *~ */*~ src/*.beam tests/*.beam tests_ebin erl_cra*;
+	rm -rf _build logs log log_dir  *.pod_dir;
+	rm -rf _build tests_ebin ebin;
+	rm -rf Mnesia.*;
+	rm -rf *.dir;
+	rm -f rebar.lock;
+	rm -rf common;
+	rm -rf sd;
+	rm -rf nodelog;
+	rm -rf db_etcd;
+#	tests 
+	mkdir tests_ebin;
+	erlc -I include -o tests_ebin tests/*.erl;
+	rm -rf tests_ebin;
+#  	dependencies
+	mkdir ebin;
+	erlc -o ebin src/*.erl;
+	rm -rf ebin;
+	git add  *;
+	git commit -m $(m);
+	git push;
+	echo Ok there you go!make
+build:
+	rm -rf  *~ */*~ src/*.beam test/*.beam test_ebin erl_cra*;
+	rm -rf _build logs log *.pod_dir;
+	rm -rf deployments *_info_specs;
+	rm -rf _build test_ebin ebin;
+	rm -f  rebar.lock;
 	mkdir ebin;		
 	rebar3 compile;	
 	cp _build/default/lib/*/ebin/* ebin;
-	rm -rf _build test_ebin logs;
-	echo Done
-check:
-	rebar3 check
+	rm -rf _build test_ebin logs log;
+
+
+clean:
+	rm -rf  *~ */*~ src/*.beam tests/*.beam
+	rm -rf erl_cra*;
+	rm -rf spec.*;
+	rm -rf tests_ebin
+	rm -rf ebin;
+	rm -rf Mnesia.*;
+	rm -rf *.dir;
+	rm -rf common;
+	rm -rf sd;
+	rm -rf nodelog;
+	rm -rf db_etcd;
+
 eunit:
-	rm -rf  *~ */*~ src/*.beam test/*.beam test_ebin erl_cra*;
-	rm -rf _build logs;
-	rm -rf deployments host_info_specs;
-	rm -rf rebar.lock;
+	rm -rf  *~ */*~ src/*.beam tests/*.beam
+	rm -rf erl_cra*;	
+	rm -rf tests_ebin
 	rm -rf ebin;
-#	host_info_specs dir and deployments dir shall be installed once
-	rm -rf  *~ */*~ apps/k3/src/*.beam test/*.beam test_ebin erl_cra*;
-	rm -rf _build logs log *.pod_dir
-	rm -rf deployments *_info_specs;
-	rm -rf rebar.lock;
-	rm -rf ebin;
-#	host_info_specs dir and deployments dir shall be installed once
-	mkdir  host_info_specs;
-	cp ../../specifications/host_info_specs/*.host host_info_specs;
-	git clone https://github.com/joq62/deployments.git;
-	git clone https://github.com/joq62/application_info_specs.git;
-	git clone https://github.com/joq62/deployment_info_specs.git;
-#	Delete and create new cluster dir to make a clean start
-	mkdir ebin;
-	rebar3 compile;
-	cp _build/default/lib/*/ebin/* ebin;
-#	testing
-	mkdir test_ebin;
-	erlc -o test_ebin test/*.erl;
-	erl -pa * -pa ebin -pa test_ebin\
-	    -pa /home/joq62/erlang/infra_2/common/ebin\
-	    -pa /home/joq62/erlang/infra_2/config/ebin\
-	    -pa /home/joq62/erlang/infra_2/etcd/ebin\
-	    -pa /home/joq62/erlang/infra_2/node/ebin\
-	    -pa /home/joq62/erlang/infra_2/nodelog/ebin\
-	    -pa /home/joq62/erlang/infra_2/sd/ebin\
-	    -sname leader_test -run basic_eunit start
+	rm -rf Mnesia.*;
+	rm -rf *.dir;
+	rm -f rebar.lock;
+#	tests 
+	mkdir tests_ebin;
+	erlc -I include -o tests_ebin tests/*.erl;
+#  	dependencies
+	rm -rf common;
+	git clone https://github.com/joq62/common.git;
+	rm -rf sd;
+	git clone https://github.com/joq62/sd.git;
+#	Applications
+	mkdir ebin;		
+#	rebar3 compile;	
+#	cp _build/default/lib/*/ebin/* ebin;
+#	rm -rf _build*;
+	erlc -o ebin src/*.erl;
+	erl -pa * -pa */ebin -pa ebin -pa tests_ebin -sname do_test -run $(m) start $(a) $(b) 
