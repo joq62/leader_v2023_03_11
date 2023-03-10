@@ -67,5 +67,6 @@ eunit:
 #	rebar3 compile;	
 #	cp _build/default/lib/*/ebin/* ebin;
 #	rm -rf _build*;
+	cp src/*.app ebin;
 	erlc -o ebin src/*.erl;
 	erl -pa * -pa */ebin -pa ebin -pa tests_ebin -sname do_test -run $(m) start $(a) $(b) 

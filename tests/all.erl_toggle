@@ -1,0 +1,171 @@
+%%% -------------------------------------------------------------------
+%%% @author  : Joq Erlang
+%%% @doc: : 
+%%% Created :
+%%% Node end point  
+%%% Creates and deletes Pods
+%%% 
+%%% API-kube: Interface 
+%%% Pod consits beams from all services, app and app and sup erl.
+%%% The setup of envs is
+%%% -------------------------------------------------------------------
+-module(all).      
+    
+ 
+-export([start/1
+
+
+	]).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+
+start([_ClusterSpec,_HostSpec])->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+    
+    ok=setup(),
+  
+ %   ok=test_0(),
+ %   ok=test_01(),
+ %   ok=test_10(),
+    ok=test_1(),
+    
+    
+    
+    io:format("Stop OK !!! ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+    timer:sleep(2000),
+  % init:stop(),
+    ok.
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+test_01()->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
+    ok=application:start(toggle_s),
+    pong=toggle_s:ping(),
+    0=toggle_s:get_count(),
+    on=toggle_s:push(),
+    1=toggle_s:get_count(),
+    off=toggle_s:push(),
+    2=toggle_s:get_count(),
+    on=toggle_s:push(),
+    3=toggle_s:get_count(),
+    
+    ok=toggle_s:stop(),
+    ok.
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+test_10()->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
+    AllNodes=test_nodes:get_nodes(),
+    [N1,N2,N3,N4]=AllNodes,
+    %% N1
+    
+    ok=rpc:call(N1,application,load,[toggle_s],5000),
+    Loaded=rpc:call(N1,application,loaded_applications,[],5000),
+    io:format("Loaded ~p~n",[{Loaded,?MODULE,?FUNCTION_NAME,?LINE}]),
+    Started=rpc:call(N1,application,start,[toggle_s],5000),
+    io:format("Started ~p~n",[{Started,?MODULE,?FUNCTION_NAME,?LINE}]),
+
+    Pong=rpc:call(N1,toggle_s,ping,[],5000),
+    io:format("Pong ~p~n",[{Pong,?MODULE,?FUNCTION_NAME,?LINE}]),
+ 
+
+    io:format("Dbg start ~p~n",[{rpc:call(N1,toggle_s,dbg,[],5000),?MODULE,?FUNCTION_NAME,?LINE}]),
+
+%    init:stop(),
+%    timer:sleep(2000),
+ 
+
+    0=rpc:call(N1,toggle_s,get_count,[],5000),
+    on=rpc:call(N1,toggle_s,push,[]),
+    1=rpc:call(N1,toggle_s,get_count,[],5000),
+    off=rpc:call(N1,toggle_s,push,[]),
+    2=rpc:call(N1,toggle_s,get_count,[],5000),
+    on=rpc:call(N1,toggle_s,push,[]),
+    3=rpc:call(N1,toggle_s,get_count,[],5000),
+    
+    ok=rpc:call(N1,application,stop,[toggle_s]),
+    
+   
+    ok.
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+test_0()->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
+    {ok,_}=toggle:start(),
+    pong=toggle:ping(),
+    0=toggle:get_count(),
+    on=toggle:push(),
+    1=toggle:get_count(),
+    off=toggle:push(),
+    2=toggle:get_count(),
+    on=toggle:push(),
+    3=toggle:get_count(),
+    
+    ok=toggle:stop(),
+       
+    
+    ok.
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+test_1()->
+  io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
+    AllNodes=test_nodes:get_nodes(),
+    [N1,N2,N3,N4]=AllNodes,
+    %% N1
+    
+    Started=rpc:call(N1,application,start,[toggle],5000),
+    io:format("Started ~p~n",[{Started,?MODULE,?FUNCTION_NAME,?LINE}]),
+
+    Pong=rpc:call(N1,toggle,ping,[],5000),
+    io:format("Pong ~p~n",[{Pong,?MODULE,?FUNCTION_NAME,?LINE}]),
+ 
+
+   % io:format("Dbg start ~p~n",[{rpc:call(N1,toggle_s,dbg,[],5000),?MODULE,?FUNCTION_NAME,?LINE}]),
+
+%    init:stop(),
+%    timer:sleep(2000),
+ 
+
+    0=rpc:call(N1,toggle,get_count,[],5000),
+    on=rpc:call(N1,toggle,push,[]),
+    1=rpc:call(N1,toggle,get_count,[],5000),
+    off=rpc:call(N1,toggle,push,[]),
+    2=rpc:call(N1,toggle,get_count,[],5000),
+    on=rpc:call(N1,toggle,push,[]),
+    3=rpc:call(N1,toggle,get_count,[],5000),
+    
+    ok=rpc:call(N1,application,stop,[toggle]),
+    
+    ok.
+
+
+%% Function: available_hosts()
+%% Description: Based on hosts.config file checks which hosts are avaible
+%% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
+%% --------------------------------------------------------------------
+setup()->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+    ok=test_nodes:start_nodes(),
+    [rpc:call(N,code,add_patha,["ebin"],5000)||N<-test_nodes:get_nodes()],     
+    
+    ok.

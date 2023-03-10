@@ -1,0 +1,70 @@
+%%% -------------------------------------------------------------------
+%%% @author  : Joq Erlang
+%%% @doc: : 
+%%% Created :
+%%% Node end point  
+%%% Creates and deletes Pods
+%%% 
+%%% API-kube: Interface 
+%%% Pod consits beams from all services, app and app and sup erl.
+%%% The setup of envs is
+%%% -------------------------------------------------------------------
+-module(all).      
+    
+ 
+-export([start/1
+
+
+	]).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+
+start([_ClusterSpec,_HostSpec])->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+    
+    ok=setup(),
+    AllNodes=test_nodes:get_nodes(),
+    ok=test_0(AllNodes),
+    
+    
+    
+    io:format("Stop OK !!! ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+    timer:sleep(2000),
+  % init:stop(),
+    ok.
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+test_0(Nodes)->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
+    
+    [N1,N2,N3,N4]=Nodes,
+    %% N1
+    {ok,_}=rpc:call(N1,leader_fsm,start_link,[Nodes],5000),
+    ok=rpc:call(N1,leader_fsm,start_election,[],5000),
+    
+    pong=rpc:call(N1,leader_fsm,ping,[]),
+    {ok,_}=rpc:call(N2,leader_fsm,start_link,[Nodes]),
+   % {ok,_}=rpc:call(N3,leader_fsm,start_link,[Nodes]),
+  
+    ok.
+
+
+%% Function: available_hosts()
+%% Description: Based on hosts.config file checks which hosts are avaible
+%% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
+%% --------------------------------------------------------------------
+setup()->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+    ok=test_nodes:start_nodes(),
+    io:format("nodes ~p~n",[{nodes(),?MODULE,?LINE,?FUNCTION_NAME}]),
+    
+    ok.

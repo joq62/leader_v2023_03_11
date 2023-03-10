@@ -1,0 +1,95 @@
+%%% -------------------------------------------------------------------
+%%% @author  : Joq Erlang
+%%% @doc: : 
+%%% Created :
+%%% Node end point  
+%%% Creates and deletes Pods
+%%% 
+%%% API-kube: Interface 
+%%% Pod consits beams from all services, app and app and sup erl.
+%%% The setup of envs is
+%%% -------------------------------------------------------------------
+-module(all).      
+    
+ 
+-export([start/1
+
+	]).
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+
+start([_ClusterSpec,_HostSpec])->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+    
+    ok=setup(),
+  
+  %  ok=test_0(),
+    ok=test_1(),
+    
+    
+    
+    io:format("Stop OK !!! ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+    timer:sleep(2000),
+  % init:stop(),
+    ok.
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+test_0()->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
+    ok=application:load(leader_fsm),
+    ok=application:set_env([{leader_fsm,[{nodes,[node()]}]}]),
+    ok=application:start(leader_fsm),
+    pong=leader_fsm:ping(),
+    Leader=leader_fsm:who_is_leader(),
+    io:format("Leader ~p~n",[{Leader,?MODULE,?FUNCTION_NAME,?LINE}]),
+    AmILeader=leader_fsm:am_i_leader(node()),
+    io:format("AmILeader ~p~n",[{AmILeader,?MODULE,?FUNCTION_NAME,?LINE}]),
+    ok=application:stop(leader_fsm),
+    ok.
+
+%%--------------------------------------------------------------------
+%% @doc
+%% @spec
+%% @end
+%%--------------------------------------------------------------------
+test_1()->
+  io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
+    AllNodes=test_nodes:get_nodes(),
+    [N1,N2,N3,N4]=AllNodes,
+    %% Init
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME,?LINE}]),
+    []=[N||N<-AllNodes,
+	   ok/=rpc:call(N,application,load,[leader_fsm],5000)],
+    []=[N||N<-AllNodes,
+	   ok/=rpc:call(N,application,set_env,[[{leader_fsm,[{nodes,AllNodes}]}]],5000)],
+    
+    %% N1
+    ok=rpc:call(N1,application,start,[leader_fsm],5000),
+    pong=rpc:call(N1,leader_fsm,ping,[],5000),
+    timer:sleep(5000),
+
+ %   N1=rpc:call(N1,leader_fsm,who_is_leader,[]),
+ %   true=rpc:call(N1,leader_fsm,am_i_leader,[node()],5000),
+    
+    ok.
+
+
+%% Function: available_hosts()
+%% Description: Based on hosts.config file checks which hosts are avaible
+%% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
+%% --------------------------------------------------------------------
+setup()->
+    io:format("Start ~p~n",[{?MODULE,?FUNCTION_NAME}]),
+    ok=test_nodes:start_nodes(),
+    [rpc:call(N,code,add_patha,["ebin"],5000)||N<-test_nodes:get_nodes()],     
+    
+    ok.
